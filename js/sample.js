@@ -14,6 +14,10 @@
         that.initMouseHandling()
       },
       redraw:function(){
+        if (!particleSystem) return
+
+        gfx.clear()
+
         ctx.fillStyle = "white"
         ctx.fillRect(0,0, canvas.width, canvas.height)
 
@@ -28,7 +32,7 @@
 
         var nodeBoxes = {}
         particleSystem.eachNode(function(node, pt){
-          var label = node.name||""
+          var label = node.data.v1||""
           var w = ctx.measureText(""+label).width + 10
           if (!(""+label).match(/^[ \t]*$/)){
             pt.x = Math.floor(pt.x)
@@ -37,14 +41,19 @@
             label = null
           }
 
-          if(node.data.who == "ieyasu")
+          if(node.data.who == "root")
           {
             ctx.fillStyle = "rgba(150,5,10,0.666)"
             gfx.oval(pt.x-w/2, pt.y-w/2, w,w, {fill:ctx.fillStyle})
           }
-          else if(node.data.who == "sokushitsu")
+          else if(node.data.who == "notPrime")
           {
             ctx.fillStyle = "rgba(0,20,150,0.666)"
+            gfx.oval(pt.x-w/2, pt.y-w/2, w,w, {fill:ctx.fillStyle})
+          }
+          else if(node.data.who == "notPrime2")
+          {
+            ctx.fillStyle = "rgba(10,150,40,0.666)"
             gfx.rect(pt.x-w/2, pt.y-10, w,20, 4, {fill:ctx.fillStyle})
           }
           else
@@ -52,6 +61,7 @@
             ctx.fillStyle = "rgba(0,0,0,0.666)"
             gfx.rect(pt.x-w/2, pt.y-10, w,20, 4, {fill:ctx.fillStyle})
           }
+
           nodeBoxes[node.name] = [pt.x-w/2, pt.y-11, w, 22]
 
           // draw the text
@@ -115,22 +125,62 @@
     return that
   }
 
+  var fact = [];
   $(document).ready(function(){
-    var sys = arbor.ParticleSystem(1000, 60, 0.5)
+    sys = arbor.ParticleSystem(1000, 60, 0.5)
     sys.parameters({gravity:true})
     sys.renderer = Renderer("#viewport")
-    sys.addNode('徳川家康',{who:"ieyasu"});
-    sys.addNode('養珠院',{who:"sokushitsu"});
-    sys.addNode('宝台院',{who:"sokushitsu"});
-    sys.addEdge('徳川家康','養珠院');
-    sys.addEdge('徳川家康','頼房');
-    sys.addEdge('徳川家康','頼宣');
-    sys.addEdge('養珠院','頼房');
-    sys.addEdge('養珠院','頼宣');
-
-    sys.addEdge('徳川家康','宝台院');
-    sys.addEdge('徳川家康','秀忠');
-    sys.addEdge('宝台院','秀忠');
   })
+
+  function factoring(seed,parent)
+  {
+    for(var i = Math.floor(seed/2) ; 1 < i ; i--)
+    {
+      if(seed % i == 0)
+      {
+        console.log(i);
+        fact.push({'parent':parent,'seed':seed,'value':i});
+        factoring(i,seed);
+      }
+    }
+  }
+
+  $('input[type="text"]').change(function() {
+
+    //入力したvalue値を変数に格納
+    var seed = Number($(this).val());
+    fact.push({'parent':seed,'seed':seed,'value':seed});
+    factoring(seed,seed);
+    for(var i = 0 ; i < fact.length; i ++)
+    {
+      var f = fact[i];
+      if(f.value == seed)
+      {
+        sys.addNode(f.seed+":"+f.value,{who:'root',v1:f.value});
+      }
+      else if(f.seed == seed)
+      {
+        sys.addNode(f.seed+":"+f.value,{who:'notPrime',v1:f.value});
+      }
+      else if(f.parent == seed)
+      {
+        sys.addNode(f.seed+":"+f.value,{who:'notPrime2',v1:f.value});
+      }
+      else
+      {
+        sys.addNode(f.seed+":"+f.value,{who:'',v1:f.value});
+      }
+    }
+    for(var i = 0 ; i < fact.length; i ++)
+    {
+      var f = fact[i];
+      if(f.value == seed)
+      {
+        continue;//一番根っこはEdgeを持たない
+      }
+      sys.addEdge(f.parent+":"+f.seed,f.seed+":"+f.value);
+    }
+
+  });
 
 })(this.jQuery)
