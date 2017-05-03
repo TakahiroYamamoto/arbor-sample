@@ -22,8 +22,17 @@
         ctx.fillRect(0,0, canvas.width, canvas.height)
 
         particleSystem.eachEdge(function(edge, pt1, pt2){
-          ctx.strokeStyle = "rgba(0,0,0, .333)"
-          ctx.lineWidth = 1
+          if(edge.data.rootEdge)
+          {
+            ctx.strokeStyle = "rgba(174,141,188,.666)"
+            ctx.lineWidth = 1
+          }
+          else
+          {
+            ctx.strokeStyle = "rgba(227,179,205, .333)"
+            ctx.lineWidth = 1
+          }
+
           ctx.beginPath()
           ctx.moveTo(pt1.x, pt1.y)
           ctx.lineTo(pt2.x, pt2.y)
@@ -43,21 +52,22 @@
 
           if(node.data.who == "root")
           {
-            ctx.fillStyle = "rgba(150,5,10,0.666)"
+            ctx.fillStyle = "rgba(160,78,144,0.9)"
             gfx.oval(pt.x-w/2, pt.y-w/2, w,w, {fill:ctx.fillStyle})
           }
           else if(node.data.who == "notPrime")
           {
-            ctx.fillStyle = "rgba(0,20,150,0.666)"
+            ctx.fillStyle = "rgba(127,126,184,0.9)"
             gfx.oval(pt.x-w/2, pt.y-w/2, w,w, {fill:ctx.fillStyle})
           }
           else if(node.data.who == "notPrime2")
           {
-            ctx.fillStyle = "rgba(10,150,40,0.666)"
+            ctx.fillStyle = "rgba(130,192,205,0.9)"
             gfx.rect(pt.x-w/2, pt.y-10, w,20, 4, {fill:ctx.fillStyle})
           }
           else
           {
+            console.log("draw-else");
             ctx.fillStyle = "rgba(0,0,0,0.666)"
             gfx.rect(pt.x-w/2, pt.y-10, w,20, 4, {fill:ctx.fillStyle})
           }
@@ -136,9 +146,9 @@
   {
     for(var i = Math.floor(seed/2) ; 1 < i ; i--)
     {
+      var alreadyHave = false;
       if(seed % i == 0)
       {
-        console.log(i);
         fact.push({'parent':parent,'seed':seed,'value':i});
         factoring(i,seed);
       }
@@ -146,7 +156,14 @@
   }
 
   $('input[type="text"]').change(function() {
-
+    if(fact.length != 0)
+    {
+      sys.eachNode(function(node, pt)
+      {
+        sys.pruneNode(node);
+        fact = [];
+      });
+    }
     //入力したvalue値を変数に格納
     var seed = Number($(this).val());
     fact.push({'parent':seed,'seed':seed,'value':seed});
@@ -168,9 +185,11 @@
       }
       else
       {
-        sys.addNode(f.seed+":"+f.value,{who:'',v1:f.value});
+        console.log('else');
+        //sys.addNode(f.seed+":"+f.value,{who:'none',v1:f.value});
       }
     }
+
     for(var i = 0 ; i < fact.length; i ++)
     {
       var f = fact[i];
@@ -178,9 +197,15 @@
       {
         continue;//一番根っこはEdgeを持たない
       }
-      sys.addEdge(f.parent+":"+f.seed,f.seed+":"+f.value);
+      if(f.seed == seed)
+      {
+        sys.addEdge(f.parent+":"+f.seed,f.seed+":"+f.value,{'rootEdge':true});
+      }
+      else
+      {
+        sys.addEdge(f.parent+":"+f.seed,f.seed+":"+f.value,{'rootEdge':false});
+      }
     }
-
   });
 
 })(this.jQuery)
