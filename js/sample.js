@@ -29,7 +29,7 @@
         var nodeBoxes = {}
         particleSystem.eachNode(function(node, pt){
           var label = node.name||""
-          var w = ctx.measureText(""+label).width + 10
+          var w = ctx.measureText(""+label).width + 20
           if (!(""+label).match(/^[ \t]*$/)){
             pt.x = Math.floor(pt.x)
             pt.y = Math.floor(pt.y)
@@ -37,15 +37,31 @@
             label = null
           }
 
-          if(node.data.who == "ieyasu")
+          var img = new Image();
+          if(node.name == "AM")
           {
-            ctx.fillStyle = "rgba(150,5,10,0.666)"
-            gfx.oval(pt.x-w/2, pt.y-w/2, w,w, {fill:ctx.fillStyle})
+            img.src = "resource/AM.png";
+            ctx.drawImage(img, pt.x-w/2, pt.y-w/2, w,w);
           }
-          else if(node.data.who == "sokushitsu")
+          else if(node.name == "CH")
           {
-            ctx.fillStyle = "rgba(0,20,150,0.666)"
-            gfx.rect(pt.x-w/2, pt.y-10, w,20, 4, {fill:ctx.fillStyle})
+            img.src = "resource/CH.png";
+            ctx.drawImage(img, pt.x-w/2, pt.y-w/2, w,w);
+          }
+          else if(node.name == "CN")
+          {
+            img.src = "resource/CN.png";
+            ctx.drawImage(img, pt.x-w/2, pt.y-w/2, w,w);
+          }
+          else if(node.name == "EN")
+          {
+            img.src = "resource/EN.png";
+            ctx.drawImage(img, pt.x-w/2, pt.y-w/2, w,w);
+          }
+          else if(node.name == "JP")
+          {
+            img.src = "resource/JP.png";
+            ctx.drawImage(img, pt.x-w/2, pt.y-w/2, w,w);
           }
           else
           {
@@ -53,16 +69,6 @@
             gfx.rect(pt.x-w/2, pt.y-10, w,20, 4, {fill:ctx.fillStyle})
           }
           nodeBoxes[node.name] = [pt.x-w/2, pt.y-11, w, 22]
-
-          // draw the text
-          if (label){
-            ctx.font = "12px Helvetica"
-            ctx.textAlign = "center"
-            ctx.fillStyle = "white"
-            if (node.data.color=='none') ctx.fillStyle = '#333333'
-            ctx.fillText(label||"", pt.x, pt.y+4)
-            ctx.fillText(label||"", pt.x, pt.y+4)
-          }
         })
       },
 
@@ -119,18 +125,16 @@
     var sys = arbor.ParticleSystem(1000, 60, 0.5)
     sys.parameters({gravity:true})
     sys.renderer = Renderer("#viewport")
-    sys.addNode('徳川家康',{who:"ieyasu"});
-    sys.addNode('養珠院',{who:"sokushitsu"});
-    sys.addNode('宝台院',{who:"sokushitsu"});
-    sys.addEdge('徳川家康','養珠院');
-    sys.addEdge('徳川家康','頼房');
-    sys.addEdge('徳川家康','頼宣');
-    sys.addEdge('養珠院','頼房');
-    sys.addEdge('養珠院','頼宣');
-
-    sys.addEdge('徳川家康','宝台院');
-    sys.addEdge('徳川家康','秀忠');
-    sys.addEdge('宝台院','秀忠');
+    sys.addNode('AM');
+    sys.addNode('CH');
+    sys.addNode('JP');
+    sys.addNode('CN');
+    sys.addNode('EN');
+    sys.addEdge('AM','CN');
+    sys.addEdge('CN','JP');
+    sys.addEdge('JP','CH');
+    sys.addEdge('CH','EN');
+    sys.addEdge('EN','AM');
   })
 
 })(this.jQuery)
